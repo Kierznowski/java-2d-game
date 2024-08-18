@@ -1,6 +1,7 @@
 package org.main;
 
 import enitity.Player;
+import object.SuperObject;
 import tile.TileManager;
 
 import javax.swing.*;
@@ -8,29 +9,42 @@ import java.awt.*;
 
 public class GamePanel extends JPanel implements Runnable {
 
-    // Screen settings
-    final int originalTileSize = 16; //16x16 tiles
+    // SCREEN SETTINGS
+    final int originalTileSize = 16; //16x16 px tiles
     final int scale = 3;
-
-    public final int tileSize = originalTileSize * scale;
-    public final int maxScreenCol = 16;
-    public final int maxScreenRow = 16;
+    public final int tileSize = originalTileSize * scale; // 48x48 px
+    public final int maxScreenCol = 16; // screen height tiles
+    public final int maxScreenRow = 12; // screen width tiles
     public final int screenWidth = tileSize * maxScreenCol; // 768 px
-    public final int screenHeight = tileSize * maxScreenRow; // 576 pxa
+    public final int screenHeight = tileSize * maxScreenRow; // 576 px
 
+    // FPS
     int FPS = 60;
 
-    KeyHandler keyH = new KeyHandler();
+    // WORLD SETTINGS
+    public final int maxWorldCol = 50;
+    public final int maxWorldRow = 50;
+    public final int worldWidth = tileSize * maxWorldCol; // world width in px
+    public final int worldHeight = tileSize * maxWorldRow; // world height in px
+
     Thread gameThread;
-    Player player = new Player(this, keyH);
+    KeyHandler keyHandler = new KeyHandler();
     TileManager tileManager = new TileManager(this);
+    public Player player = new Player(this, keyHandler);
+    public AssetSetter assetSetter = new AssetSetter(this);
+    public CollisionManager collisionManager = new CollisionManager(this);
+    public SuperObject[] obj = new SuperObject[10];
 
     public GamePanel() {
         this.setPreferredSize(new Dimension(screenWidth, screenHeight));
         this.setBackground(Color.BLACK);
         this.setDoubleBuffered(true);
-        this.addKeyListener(keyH);
+        this.addKeyListener(keyHandler);
         this.setFocusable(true);
+    }
+
+    public void setupGame() {
+        assetSetter.setObject();
     }
 
     public void startGameThread() {
@@ -72,43 +86,17 @@ public class GamePanel extends JPanel implements Runnable {
         super.paintComponent(g);
         Graphics2D g2 = (Graphics2D)g;
 
+        // map
         tileManager.draw(g2);
+        // objects
+        for(SuperObject object : obj) {
+            if(object != null) {
+                object.draw(g2, this);
+            }
+        }
+        // player
         player.draw(g2);
 
         g2.dispose();
     }
 }
-
-
-
-
-/*
-// OTHER GAMELOOP BASED ON THREAD.SLEEP
-    @Override
-    public void run() {
-
-        double drawInterval = 1_000_000_000 /FPS; // 0.0166(6) sec
-        double nextDrawTime = System.nanoTime() + drawInterval;
-        while(gameThread != null) {
-
-            update();
-
-            repaint();
-
-
-            try {
-                double remainingTime = nextDrawTime - System.nanoTime();
-                remainingTime /= 1_000_000;
-
-                if(remainingTime < 0) {
-                    remainingTime = 0;
-                }
-                Thread.sleep((long) remainingTime);
-                nextDrawTime += drawInterval;
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-*/

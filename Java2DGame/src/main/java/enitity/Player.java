@@ -13,12 +13,20 @@ public class Player extends Entity {
     GamePanel gamePanel;
     KeyHandler keyHandler;
 
+    public final int screenX;
+    public final int screenY;
+
     public Player(GamePanel gamePanel, KeyHandler keyHandler) {
         this.gamePanel = gamePanel;
         this.keyHandler = keyHandler;
+        // coordinates of Player on the screen. Should always point center of the screen.
+        screenX = gamePanel.screenWidth / 2 - gamePanel.tileSize / 2;
+        screenY = gamePanel.screenHeight / 2 - gamePanel.tileSize / 2;
 
-        this.setDefaultValues();
-        this.getPlayerImage();
+        collisionArea = new Rectangle(6, 16, 32, 30);
+
+        setDefaultValues();
+        getPlayerImage();
     }
 
     public void getPlayerImage() {
@@ -38,38 +46,47 @@ public class Player extends Entity {
     }
 
     public void setDefaultValues() {
-        x = 100;
-        y = 100;
+        worldX = gamePanel.tileSize * 23;
+        worldY = gamePanel.tileSize * 21;
         speed = 4;
         direction = "down";
     }
 
     public void update() {
+        // check if Player moves
         if(keyHandler.upPressed || keyHandler.downPressed || keyHandler.leftPressed || keyHandler.rightPressed) {
-            spriteCounter++;
             if (keyHandler.upPressed) {
-                y -= speed;
                 direction = "up";
             } else if (keyHandler.downPressed) {
-                y += speed;
                 direction = "down";
             } else if (keyHandler.leftPressed) {
-                x -= speed;
                 direction = "left";
-            } else  {
-                x += speed;
+            } else {
                 direction = "right";
             }
-        }
 
-
-        if(spriteCounter > 8) {
-            if(spriteNum == 1) {
-                spriteNum = 2;
-            } else if (spriteNum == 2) {
-                spriteNum = 1;
+            // check if collision doesn't occur, and then update position
+            collisionOn = false;
+            gamePanel.collisionManager.checkTile(this);
+            if(!collisionOn) {
+                switch(direction) {
+                    case "up" -> worldY -= speed;
+                    case "down" -> worldY += speed;
+                    case "left" -> worldX -= speed;
+                    case "right" -> worldX += speed;
+                }
             }
-            spriteCounter = 0;
+
+            // animate movement, spriteNum alternate image of Player in draw() function
+            spriteCounter++;
+            if (spriteCounter > 8) {
+                if (spriteNum == 1) {
+                    spriteNum = 2;
+                } else if (spriteNum == 2) {
+                    spriteNum = 1;
+                }
+                spriteCounter = 0;
+            }
         }
     }
 
@@ -111,7 +128,7 @@ public class Player extends Entity {
                 }
             }
         }
-        g2.drawImage(image, x, y, gamePanel.tileSize, gamePanel.tileSize, null);
+        g2.drawImage(image, screenX, screenY, gamePanel.tileSize, gamePanel.tileSize, null);
 
     }
 }
