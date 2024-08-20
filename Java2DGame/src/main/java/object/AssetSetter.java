@@ -1,6 +1,7 @@
-package org.main;
+package object;
 
 import object.*;
+import org.main.GamePanel;
 
 public class AssetSetter {
 
@@ -21,8 +22,8 @@ public class AssetSetter {
 
 
         gamePanel.obj[2] = new ShovelObject();
-        gamePanel.obj[2].worldX = 78 * gamePanel.tileSize;
-        gamePanel.obj[2].worldY = 39 * gamePanel.tileSize;
+        gamePanel.obj[2].worldX = 76 * gamePanel.tileSize;
+        gamePanel.obj[2].worldY = 41 * gamePanel.tileSize;
 
         gamePanel.obj[3] = new DoorsObject();
         gamePanel.obj[3].worldX = 0 * gamePanel.tileSize;

@@ -1,6 +1,7 @@
 package org.main;
 
 import enitity.Player;
+import object.AssetSetter;
 import object.SuperObject;
 import tile.TileManager;
 
@@ -29,7 +30,7 @@ public class GamePanel extends JPanel implements Runnable {
 
     Thread gameThread;
     KeyHandler keyHandler = new KeyHandler();
-    TileManager tileManager = new TileManager(this);
+    public TileManager tileManager = new TileManager(this);
     public Player player = new Player(this, keyHandler);
     public AssetSetter assetSetter = new AssetSetter(this);
     public CollisionManager collisionManager = new CollisionManager(this);

@@ -15,6 +15,8 @@ public class Player extends Entity {
 
     public final int screenX;
     public final int screenY;
+    boolean hasAxe = false;
+    boolean hasShovel = false;
 
     public Player(GamePanel gamePanel, KeyHandler keyHandler) {
         this.gamePanel = gamePanel;
@@ -22,8 +24,10 @@ public class Player extends Entity {
         // coordinates of Player on the screen. Should always point center of the screen.
         screenX = gamePanel.screenWidth / 2 - gamePanel.tileSize / 2;
         screenY = gamePanel.screenHeight / 2 - gamePanel.tileSize / 2;
-
-        collisionArea = new Rectangle(6, 16, 32, 30);
+        // collisions
+        collisionArea = new Rectangle(8, 16, 32, 30);
+        collisionAreaDefaultX = collisionArea.x;
+        collisionAreaDefaultY = collisionArea.y;
 
         setDefaultValues();
         getPlayerImage();
@@ -68,6 +72,9 @@ public class Player extends Entity {
             // check if collision doesn't occur, and then update position
             collisionOn = false;
             gamePanel.collisionManager.checkTile(this);
+            int objIndex = gamePanel.collisionManager.checkObject(this, true);
+            pickUpObject(objIndex);
+
             if(!collisionOn) {
                 switch(direction) {
                     case "up" -> worldY -= speed;
@@ -86,6 +93,45 @@ public class Player extends Entity {
                     spriteNum = 1;
                 }
                 spriteCounter = 0;
+            }
+        }
+
+        // check if action happen
+        if(keyHandler.actionPressed && hasAxe) {
+            int col = worldX / gamePanel.tileSize;
+            int row = worldY / gamePanel.tileSize;
+            switch (direction) {
+                case "up" -> {
+                    row--;
+                }
+                case "down" -> {
+                    row++;
+                }
+                case "left" -> {
+                    col--;
+                }
+                case "right" -> {
+                    col++;
+                }
+            }
+           if(gamePanel.tileManager.mapTileNum[col][row] == 3) {
+               gamePanel.tileManager.mapTileNum[col][row] = 0;
+           }
+        }
+    }
+
+    public void pickUpObject(int i) {
+        if(i != 999) {
+            String objectName = gamePanel.obj[i].name;
+            switch(objectName) {
+                case "Axe" -> {
+                    hasAxe = true;
+                    gamePanel.obj[i] = null;
+                }
+                case "Shovel" -> {
+                    hasShovel = true;
+                    gamePanel.obj[i] = null;
+                }
             }
         }
     }

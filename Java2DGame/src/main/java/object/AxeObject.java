@@ -13,5 +13,6 @@ public class AxeObject extends SuperObject {
             System.out.println("No axe image found on resources.");
             e.printStackTrace();
         }
+        collision = true;
     }
 }
