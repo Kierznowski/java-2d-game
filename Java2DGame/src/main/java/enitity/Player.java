@@ -84,7 +84,7 @@ public class Player extends Entity {
                 }
             }
 
-            // animate movement, spriteNum alternate image of Player in draw() function
+            // animate movement, alternate image of Player in draw() function
             spriteCounter++;
             if (spriteCounter > 8) {
                 if (spriteNum == 1) {
@@ -98,8 +98,8 @@ public class Player extends Entity {
 
         // check if action happen
         if(keyHandler.actionPressed && hasAxe) {
-            int col = worldX / gamePanel.tileSize;
-            int row = worldY / gamePanel.tileSize;
+            int col = (worldX + gamePanel.tileSize/2) / gamePanel.tileSize;
+            int row = (worldY + gamePanel.tileSize/2) / gamePanel.tileSize;
             switch (direction) {
                 case "up" -> {
                     row--;
@@ -122,6 +122,7 @@ public class Player extends Entity {
 
     public void pickUpObject(int i) {
         if(i != 999) {
+            gamePanel.playSoundEffect(1);
             String objectName = gamePanel.obj[i].name;
             switch(objectName) {
                 case "Axe" -> {
