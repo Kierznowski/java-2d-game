@@ -126,4 +126,28 @@ public class CollisionManager {
         }
         return index;
     }
+
+    public int[] getCollidedTileCoordinates(int worldX, int worldY, String direction) {
+        int[] coordinates = new int[2];
+        int col = (worldX + gamePanel.tileSize/2) / gamePanel.tileSize;
+        int row = (worldY + gamePanel.tileSize/2) / gamePanel.tileSize;
+
+        switch (direction) {
+            case "up" -> {
+                row--;
+            }
+            case "down" -> {
+                row++;
+            }
+            case "left" -> {
+                col--;
+            }
+            case "right" -> {
+                col++;
+            }
+        }
+        coordinates[0] = col;
+        coordinates[1] = row;
+        return coordinates;
+    }
 }

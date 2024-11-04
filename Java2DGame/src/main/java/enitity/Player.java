@@ -1,5 +1,6 @@
 package enitity;
 
+import org.main.CollisionManager;
 import org.main.GamePanel;
 import org.main.KeyHandler;
 
@@ -12,11 +13,14 @@ public class Player extends Entity {
 
     GamePanel gamePanel;
     KeyHandler keyHandler;
+    CollisionManager collisionManager;
 
     public final int screenX;
     public final int screenY;
-    boolean hasAxe = false;
-    boolean hasShovel = false;
+    public boolean hasShovel = false;
+    public boolean hasAxe = false;
+    int actionCounter = 0;
+    boolean actionCounted = false;
 
     public Player(GamePanel gamePanel, KeyHandler keyHandler) {
         this.gamePanel = gamePanel;
@@ -59,88 +63,19 @@ public class Player extends Entity {
     public void update() {
         // check if Player moves
         if(keyHandler.upPressed || keyHandler.downPressed || keyHandler.leftPressed || keyHandler.rightPressed) {
-            if (keyHandler.upPressed) {
-                direction = "up";
-            } else if (keyHandler.downPressed) {
-                direction = "down";
-            } else if (keyHandler.leftPressed) {
-                direction = "left";
-            } else {
-                direction = "right";
-            }
-
-            // check if collision doesn't occur, and then update position
-            collisionOn = false;
-            gamePanel.collisionManager.checkTile(this);
-            int objIndex = gamePanel.collisionManager.checkObject(this, true);
-            pickUpObject(objIndex);
-
-            if(!collisionOn) {
-                switch(direction) {
-                    case "up" -> worldY -= speed;
-                    case "down" -> worldY += speed;
-                    case "left" -> worldX -= speed;
-                    case "right" -> worldX += speed;
-                }
-            }
-
-            // animate movement, alternate image of Player in draw() function
-            spriteCounter++;
-            if (spriteCounter > 8) {
-                if (spriteNum == 1) {
-                    spriteNum = 2;
-                } else if (spriteNum == 2) {
-                    spriteNum = 1;
-                }
-                spriteCounter = 0;
-            }
+            movePlayer();
         }
 
-        // check if action happen
-        if(keyHandler.actionPressed && hasAxe) {
-            int col = (worldX + gamePanel.tileSize/2) / gamePanel.tileSize;
-            int row = (worldY + gamePanel.tileSize/2) / gamePanel.tileSize;
-            switch (direction) {
-                case "up" -> {
-                    row--;
-                }
-                case "down" -> {
-                    row++;
-                }
-                case "left" -> {
-                    col--;
-                }
-                case "right" -> {
-                    col++;
-                }
-            }
-           if(gamePanel.tileManager.mapTileNum[col][row] == 3) {
-               gamePanel.tileManager.mapTileNum[col][row] = 0;
-           }
+        if(keyHandler.actionPressed) {
+            manageAction();
+        }
+
+        if(!keyHandler.actionPressed) {
+            actionCounted = false;
         }
     }
-
-    public void pickUpObject(int i) {
-        if(i != 999) {
-            gamePanel.playSoundEffect(1);
-            String objectName = gamePanel.obj[i].name;
-            switch(objectName) {
-                case "Axe" -> {
-                    hasAxe = true;
-                    gamePanel.obj[i] = null;
-                }
-                case "Shovel" -> {
-                    hasShovel = true;
-                    gamePanel.obj[i] = null;
-                }
-            }
-        }
-    }
-
     public void draw(Graphics2D g2) {
-
         BufferedImage image = null;
-
         switch(direction) {
             case "up" -> {
                 if(spriteNum == 1) {
@@ -176,7 +111,102 @@ public class Player extends Entity {
             }
         }
         g2.drawImage(image, screenX, screenY, gamePanel.tileSize, gamePanel.tileSize, null);
+    }
+    public void movePlayer() {
+        if (keyHandler.upPressed) {
+            direction = "up";
+        } else if (keyHandler.downPressed) {
+            direction = "down";
+        } else if (keyHandler.leftPressed) {
+            direction = "left";
+        } else {
+            direction = "right";
+        }
 
+        // check if collision doesn't occur, and then update position
+        collisionOn = false;
+        gamePanel.collisionManager.checkTile(this);
+        int objIndex = gamePanel.collisionManager.checkObject(this, true);
+        pickUpObject(objIndex);
+        if(!collisionOn) {
+            switch(direction) {
+                case "up" -> worldY -= speed;
+                case "down" -> worldY += speed;
+                case "left" -> worldX -= speed;
+                case "right" -> worldX += speed;
+            }
+        }
+
+        // animate movement, alternate image of Player in draw() function
+        spriteCounter++;
+        if (spriteCounter > 8) {
+            if (spriteNum == 1) {
+                spriteNum = 2;
+            } else if (spriteNum == 2) {
+                spriteNum = 1;
+            }
+            spriteCounter = 0;
+        }
+    }
+
+    void manageAction() {
+        int[] coordinates = gamePanel.collisionManager.
+                getCollidedTileCoordinates(worldX, worldY, direction);
+        if(hasAxe) {
+            chop(coordinates[0], coordinates[1]);
+        }
+
+        if(hasShovel) {
+            dig(coordinates[0], coordinates[1]);
+        }
+    }
+
+    void chop(int col, int row) {
+        //tile 3: tree
+        if(gamePanel.tileManager.mapTileNum[col][row] == 3 && !actionCounted) {
+            actionCounter++;
+            actionCounted = true;
+            if(actionCounter == 4) {
+                gamePanel.playSoundEffect(2);
+                gamePanel.tileManager.mapTileNum[col][row] = 0;
+            } else if(actionCounter > 4) {
+                actionCounter = 1;
+            }
+        }
+    }
+
+    void dig(int col, int row) {
+        //tile 5: earth
+        if(gamePanel.tileManager.mapTileNum[col][row] == 5) {
+            actionCounter++;
+            actionCounted = true;
+            if(actionCounter == 4) {
+                gamePanel.playSoundEffect(2);
+                //trzeba poprawić płytkę która będzie się pojawiać po wykopaniu
+                gamePanel.tileManager.mapTileNum[col][row] = 0;
+            } else if(actionCounter > 0) {
+                actionCounter = 1;
+            }
+        }
+    }
+
+    public void pickUpObject(int i) {
+        if(i != 999) {
+            gamePanel.playSoundEffect(1);
+            String objectName = gamePanel.obj[i].name;
+            switch(objectName) {
+                case "Axe" -> {
+                    hasAxe = true;
+                    gamePanel.obj[i] = null;
+                    gamePanel.userInterface.showMessage("Use action key (E) to chop trees.");
+                }
+                case "Shovel" -> {
+                    hasShovel = true;
+                    gamePanel.obj[i] = null;
+                    gamePanel.userInterface.showMessage("Use action key (E) to dig in the ground");
+                }
+            }
+        }
     }
 }
 
